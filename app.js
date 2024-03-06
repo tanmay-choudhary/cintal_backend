@@ -1,8 +1,8 @@
 const express = require("express");
+require("dotenv").config();
 const bodyParser = require("body-parser");
 const patientsRoute = require("./routes/patients.js");
 global.asyncWrapper = require("./middleware/asyncWrapper");
-
 const app = express();
 const PORT = 3001;
 
