@@ -1,6 +1,6 @@
 const {
   createPatientModel,
-  getPatientByPatientId,
+  getPatientModel,
   getAllPatientsModel,
 } = require("../model/patient.js");
 const asyncWrapper = require("../middleware/asyncWrapper");
@@ -27,7 +27,7 @@ exports.createPatient = asyncWrapper(async (req, res, next) => {
 exports.getPatient = asyncWrapper(async (req, res, next) => {
   let { patientId } = req.query;
   if (patientId) {
-    let data = await getPatientByPatientId(patientId);
+    let data = await getPatientModel(patientId);
     return res.status(200).json(data);
   } else {
     return res.json({ error: "PatientId not found" });

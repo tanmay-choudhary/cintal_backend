@@ -11,19 +11,30 @@ exports.createPatientModel = asyncWrapper(
     const docRef = await db
       .collection("patients")
       .add({ name, email, password, role, createdAt, patientId });
-    return docRef.id;
+    return { uid: docRef.id };
   }
 );
-exports.getPatientByPatientId = asyncWrapper(async (patientId) => {
-  const snapshot = await db
-    .collection("patients")
-    .where("patientId", "==", patientId)
-    .get();
+exports.getPatientModel = asyncWrapper(async (patientId, email) => {
+  let snapshot;
+  if (patientId && patientId != "") {
+    snapshot = await db
+      .collection("patients")
+      .where("patientId", "==", patientId)
+      .get();
+  } else if (email && email != "") {
+    snapshot = await db
+      .collection("patients")
+      .where("email", "==", email)
+      .get();
+  } else {
+    throw new Error("Please provide either patientId or email.");
+  }
+
   if (!snapshot.empty) {
     const patientData = snapshot.docs[0].data();
-    return patientData;
+    return [patientData];
   } else {
-    throw new Error("Patient not found with patientId: " + patientId);
+    return [];
   }
 });
 exports.getAllPatientsModel = asyncWrapper(async () => {
@@ -46,7 +57,7 @@ exports.getAllPatientsModel = asyncWrapper(async () => {
   return patients;
 });
 
-exports.updateModel = asyncWrapper(async (patientId, newData) => {
+exports.updatePatientModel = asyncWrapper(async (patientId, newData) => {
   await db
     .collection("patients")
     .where("patientId", "==", patientId)
