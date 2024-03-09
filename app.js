@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 require("dotenv").config();
 const bodyParser = require("body-parser");
 const patientsRoute = require("./routes/patients.js");
@@ -8,7 +9,7 @@ const app = express();
 const PORT = 3001;
 
 app.use(bodyParser.json());
-
+app.use(cors());
 app.listen(PORT, (error) => {
   if (!error)
     console.log(

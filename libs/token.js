@@ -96,10 +96,10 @@ class Token {
       const isValid = await tokenModel.getTokenData({
         refreshToken,
       });
-      if (isValid?.length && new Date(isValid[0].expiry_at) >= new Date()) {
+      if (isValid && new Date(isValid.expiryAt) >= new Date()) {
         const filePath = path.join(
           __dirname,
-          `../config/sessions/${isValid[0].session_token}`
+          `../config/sessions/${isValid.sessionToken}`
         );
         try {
           const stats = fs.statSync(filePath); // create meta data object of file or fetch file details

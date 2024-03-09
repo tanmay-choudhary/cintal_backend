@@ -1,5 +1,6 @@
 const { getPatientModel, createPatientModel } = require("../model/patient.js");
 const { getDoctorModel, createDoctorModel } = require("../model/doctor.js");
+const tokenModel = require("../token/token_model");
 const TOKEN_LIB = require("../libs/token");
 const loginHelper = require("./login_helper");
 const asyncWrapper = require("../middleware/asyncWrapper");
@@ -32,7 +33,6 @@ exports.signup = asyncWrapper(async (req, res, next) => {
         ? await getPatientModel("", email)
         : await getDoctorModel("", email);
     if (!searchUser.length) {
-      //verify the otp_token.
       const TOKEN = new TOKEN_LIB();
 
       const createUser =
@@ -63,7 +63,7 @@ exports.signup = asyncWrapper(async (req, res, next) => {
             ? await getPatientModel("", email)
             : await getPatientModel("", email);
         res.status(status).json({
-          refresh_token: refreshToken,
+          //refresh_token: refreshToken,
           user: userData[0],
         });
       } else {
@@ -131,4 +131,124 @@ exports.login = asyncWrapper(async (req, res) => {
       message: message,
     });
   }
+});
+
+exports.refreshToken = asyncWrapper(async (req, res) => {
+  const { refresh_token, grant_type } = req.body;
+  if (refresh_token && grant_type) {
+    const token = new TOKEN_LIB();
+    switch (grant_type) {
+      case "refresh_token": {
+        const accessToken = await token.accessToken({
+          refreshToken: refresh_token,
+        });
+        if (accessToken.status) {
+          res.json({
+            access_token: accessToken.data,
+          });
+        } else {
+          res.status(400).json({
+            message: accessToken.error,
+          });
+        }
+        break;
+      }
+      case "token_validity": {
+        const isValid = await token.tokenValidity({
+          refreshToken: refresh_token,
+        });
+        if (isValid) {
+          res.json({
+            validity: true,
+          });
+        } else {
+          res.status(400).json({
+            validity: false,
+          });
+        }
+        break;
+      }
+      default: {
+        res.status(400).json({
+          message: "We can not process your request",
+        });
+        break;
+      }
+    }
+  } else {
+    res.status(400).json({
+      message: !refresh_token
+        ? "Refresh token is required"
+        : "Grant_type is required",
+    });
+  }
+});
+
+exports.logout = asyncWrapper(async (req, res) => {
+  let httpStatus = 200;
+  let httpResponse = {};
+
+  const { refresh_token } = req.body;
+  let { type, session_token } = req.query;
+
+  if (type) {
+    if (type.toLowerCase() == "all") {
+      type = "all";
+    } else if (type.toLowerCase() == "one") {
+      type = "one";
+    }
+  } else {
+    type = "one";
+  }
+
+  if (refresh_token) {
+    const tokenDetails = await tokenModel.getTokenData({
+      refreshToken: refresh_token,
+    });
+    if (tokenDetails?.length > 0) {
+      if (type == "one") {
+        if (session_token) {
+          const deleteResponse = await authModel.deleteSessionToken({
+            uid: tokenDetails[0].uid,
+            sessionToken: session_token,
+          });
+          if (deleteResponse.status) {
+            httpResponse.status = true;
+          } else {
+            httpStatus = 500;
+          }
+        } else {
+          const deleteResponse = await authModel.deleteSessionToken({
+            uid: tokenDetails[0].uid,
+            sessionToken: tokenDetails[0].session_token,
+          });
+          if (deleteResponse.status) {
+            httpResponse.status = true;
+          } else {
+            httpStatus = 500;
+          }
+        }
+      } else if (type == "all") {
+        const deleteResponse = await authModel.deleteSessionToken({
+          uid: tokenDetails[0].uid,
+        });
+        if (deleteResponse.status) {
+          httpResponse.status = true;
+        } else {
+          httpStatus = 500;
+        }
+      }
+    } else {
+      httpStatus = 400;
+      httpResponse.message = "Invalid Refresh token provided";
+    }
+  } else {
+    httpStatus = 400;
+    httpResponse.message = "Refresh token required";
+  }
+
+  if (httpResponse.error && !httpResponse.message) {
+    httpResponse.message = "Something went wrong.";
+  }
+  return res.status(httpStatus).json(httpResponse);
 });

@@ -9,9 +9,7 @@ async function generateSessionToken() {
   try {
     const sessionToken =
       crypto.randomBytes(12).toString("hex") + new Date().getTime();
-    // generate a file with the name same as session token
     const folderPath = path.join(__dirname, `../config/sessions`);
-    // Check if folder exists, and create it if it doesn't
     if (!fs.existsSync(folderPath)) {
       fs.mkdirSync(folderPath);
     }
@@ -32,9 +30,6 @@ async function deleteSessionToken(sessionToken) {
       fs.unlinkSync(filePath);
     }
   } catch (error) {
-    log.error({
-      error: error.message,
-    });
     response.status = false;
   }
   return response;

@@ -1,4 +1,5 @@
 const db = require("../db.js");
+const sessionHelper = require("../helpers/session");
 
 const verifyPassword = async ({ email, password }) => {
   try {
@@ -32,4 +33,35 @@ const verifyPassword = async ({ email, password }) => {
   }
 };
 
-module.exports = { verifyPassword };
+const deleteSessionToken = async ({ uid, sessionToken }) => {
+  const responseData = { status: true };
+
+  const deleteStatus = await sessionHelper.deleteSessionToken(sessionToken);
+  if (deleteStatus.status) {
+    let querySnapshot = await db
+      .collection("refresh_tokens")
+      .where("uid", "==", uid)
+      .get();
+    if (querySnapshot.empty) {
+      return {
+        success: false,
+        message: "Refresh token not found for the provided UID.",
+      };
+    }
+    const batch = db.batch();
+    querySnapshot.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
+
+    responseData = {
+      status: true,
+      message: "Refresh token deleted successfully.",
+    };
+  } else {
+    responseData.status = false;
+  }
+
+  return responseData;
+};
+module.exports = { deleteSessionToken, verifyPassword };
