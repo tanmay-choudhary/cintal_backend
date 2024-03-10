@@ -4,6 +4,7 @@ require("dotenv").config();
 const bodyParser = require("body-parser");
 const patientsRoute = require("./routes/patients.js");
 const doctorsRoute = require("./routes/doctor.js");
+const appointmentRoute = require("./routes/appointment.js");
 const authRoute = require("./auth/auth_route.js");
 global.asyncWrapper = require("./middleware/asyncWrapper");
 const app = express();
@@ -20,5 +21,6 @@ app.listen(PORT, (error) => {
 });
 app.use("/doctors", doctorsRoute);
 app.use("/patients", patientsRoute);
+app.use("/appointment", appointmentRoute);
 app.use("/auth", authRoute);
 module.exports = app;

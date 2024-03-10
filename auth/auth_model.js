@@ -34,7 +34,7 @@ const verifyPassword = async ({ email, password }) => {
 };
 
 const deleteSessionToken = async ({ uid, sessionToken }) => {
-  const responseData = { status: true };
+  let responseData = { status: true };
 
   const deleteStatus = await sessionHelper.deleteSessionToken(sessionToken);
   if (deleteStatus.status) {

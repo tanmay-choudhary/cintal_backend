@@ -1,5 +1,6 @@
 const { getPatientModel, createPatientModel } = require("../model/patient.js");
 const { getDoctorModel, createDoctorModel } = require("../model/doctor.js");
+const { deleteSessionToken } = require("./auth_model.js");
 const tokenModel = require("../token/token_model");
 const TOKEN_LIB = require("../libs/token");
 const loginHelper = require("./login_helper");
@@ -205,11 +206,11 @@ exports.logout = asyncWrapper(async (req, res) => {
     const tokenDetails = await tokenModel.getTokenData({
       refreshToken: refresh_token,
     });
-    if (tokenDetails?.length > 0) {
+    if (tokenDetails) {
       if (type == "one") {
         if (session_token) {
-          const deleteResponse = await authModel.deleteSessionToken({
-            uid: tokenDetails[0].uid,
+          const deleteResponse = await deleteSessionToken({
+            uid: tokenDetails.uid,
             sessionToken: session_token,
           });
           if (deleteResponse.status) {
@@ -218,9 +219,9 @@ exports.logout = asyncWrapper(async (req, res) => {
             httpStatus = 500;
           }
         } else {
-          const deleteResponse = await authModel.deleteSessionToken({
-            uid: tokenDetails[0].uid,
-            sessionToken: tokenDetails[0].session_token,
+          const deleteResponse = await deleteSessionToken({
+            uid: tokenDetails.uid,
+            sessionToken: tokenDetails.sessionToken,
           });
           if (deleteResponse.status) {
             httpResponse.status = true;
