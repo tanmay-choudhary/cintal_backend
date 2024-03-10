@@ -18,7 +18,7 @@ async function loginWithPassword({ email, password, req, res }) {
       const token = new TOKEN_LIB();
       const refreshToken = await token.createRefreshToken({
         uid:
-          userData[0].role == "patient"
+          userData[0].role == "Patient"
             ? userData[0].patientId
             : userData[0].doctorId,
       });

@@ -39,13 +39,10 @@ exports.getAllDoctorModel = asyncWrapper(async () => {
 
   snapshot.forEach((doc) => {
     doctors.push({
-      id: doc.id,
-      createdAt: doc.data().createdAt.toDate(),
-      email: doc.data().email,
       name: doc.data().name,
-      password: doc.data().password,
       doctorId: doc.data().doctorId,
-      role: doc.data().role,
+      specialisation: doc.data().specialisation,
+      availability: doc.data().availability,
     });
   });
 
@@ -53,9 +50,18 @@ exports.getAllDoctorModel = asyncWrapper(async () => {
 });
 
 exports.updateDoctorModel = asyncWrapper(async (doctorId, newData) => {
-  await db
+  const doctorQuerySnapshot = await db
     .collection("doctors")
     .where("doctorId", "==", doctorId)
-    .update(newData);
-  return "Patient updated successfully";
+    .get();
+
+  if (doctorQuerySnapshot.empty) {
+    throw new Error("Doctor not found"); // Throw an error if the doctor with the specified ID doesn't exist
+  }
+
+  const doctorDocRef = doctorQuerySnapshot.docs[0].ref; // Get the reference to the first (and hopefully only) document in the query result
+
+  await doctorDocRef.update(newData); // Update the document with the new data
+
+  return "Doctor updated successfully"; // Return success message
 });

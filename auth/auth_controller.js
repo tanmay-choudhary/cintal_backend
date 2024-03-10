@@ -29,14 +29,14 @@ exports.signup = asyncWrapper(async (req, res, next) => {
   if (flag) {
     //Check user already exists or not.
     const searchUser =
-      role == "patient"
+      role == "Patient"
         ? await getPatientModel("", email)
         : await getDoctorModel("", email);
     if (!searchUser.length) {
       const TOKEN = new TOKEN_LIB();
 
       const createUser =
-        role == "patient"
+        role == "Patient"
           ? await createPatientModel({
               email,
               password,

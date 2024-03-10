@@ -2,6 +2,7 @@ const {
   createPatientModel,
   getPatientModel,
   getAllPatientsModel,
+  updatePatientModel,
 } = require("../model/patient.js");
 const asyncWrapper = require("../middleware/asyncWrapper");
 
@@ -36,8 +37,22 @@ exports.getPatient = asyncWrapper(async (req, res, next) => {
 
 exports.getAllPatients = asyncWrapper(async (req, res, next) => {
   try {
-    return await getAllPatientsModel();
+    let data = await getAllPatientsModel();
+    return res.status(200).json(data);
   } catch (error) {
     return { error: error.message };
+  }
+});
+
+exports.updatePatient = asyncWrapper(async (req, res, next) => {
+  try {
+    const patientId = req.params.id;
+    const updatedData = req.body;
+
+    const updatedPatient = await updatePatientModel(patientId, updatedData);
+
+    return res.status(200).json(updatedPatient);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
 });
